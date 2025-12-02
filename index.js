@@ -25,13 +25,28 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
+
     // await client.connect();
-    // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+    const db = client.db('electraFix-db')
+    const servicesCollection = db.collection('services')
+    
+    //save a serviceData in db
+    app.post('/add-service', async (req, res) => {
+      const serviceData = req.body
+      const result = await servicesCollection.insertOne(serviceData)
+      console.log(result)
+      res.send(result)
+    })
+
+    //get all jobs data from db
+    app.get('/services', async (req, res) => {
+      const result = await servicesCollection.find().toArray()
+      res.send(result)
+    })
+
+    
   } finally {
-    // Ensures that the client will close when you finish/error
     // await client.close();
   }
 }
