@@ -30,7 +30,8 @@ async function run() {
 
     const db = client.db('electraFix-db')
     const servicesCollection = db.collection('services')
-    
+    const bookingCollection = db.collection('booking')
+
     //save a serviceData in db
     app.post('/add-service', async (req, res) => {
       const serviceData = req.body
@@ -47,17 +48,39 @@ async function run() {
 
     //get a single service data by id from db
     app.get('/service/:id', async (req, res) => {
-      const id = req.params.id 
+      const id = req.params.id
       const query = { _id: new ObjectId(id) }
-      const result = await servicesCollection.findOne(query)       
+      const result = await servicesCollection.findOne(query)
       res.send(result)
     })
 
 
-    
+    //save a booking in db
+    app.post(`/bookings`, async (req, res) => {
+      const bookingData = req.body
+
+      //if a user placed a booking already in this job 
+      const query = { 
+        serviceId: bookingData.serviceId, 
+        userEmail: bookingData.userEmail 
+      }
+      const alreadyExist = await bookingCollection.findOne(query)
+
+      console.log('if already exist:', alreadyExist);
+      if (alreadyExist)
+        return res
+          .status(400)
+          .send('You have already Booked this Service!')
+
+      //save data in booking collection
+      const result = await bookingCollection.insertOne(bookingData)
+
+      res.send(result)
+    })
+
   } finally {
     // await client.close();
-    
+
   }
 }
 run().catch(console.dir);
