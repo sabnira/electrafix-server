@@ -60,9 +60,9 @@ async function run() {
       const bookingData = req.body
 
       //if a user placed a booking already in this job 
-      const query = { 
-        serviceId: bookingData.serviceId, 
-        userEmail: bookingData.userEmail 
+      const query = {
+        serviceId: bookingData.serviceId,
+        userEmail: bookingData.userEmail
       }
       const alreadyExist = await bookingCollection.findOne(query)
 
@@ -75,6 +75,17 @@ async function run() {
       //save data in booking collection
       const result = await bookingCollection.insertOne(bookingData)
 
+      res.send(result)
+    })
+
+
+    // get all bookings for a specific user
+    app.get('/bookings/:email', async (req, res) => {
+      const email = req.params.email
+
+      const query = { userEmail: email }
+
+      const result = await bookingCollection.find(query).toArray()
       res.send(result)
     })
 
