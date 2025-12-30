@@ -89,6 +89,28 @@ async function run() {
       res.send(result)
     })
 
+    // get all my services for a specific user
+    app.get('/myServices/:email', async (req, res) => {
+      const email = req.params.email
+
+      const query = { providerEmail: email }
+
+      const result = await bookingCollection.find(query).toArray()
+      res.send(result)
+    })
+
+    //status update
+    app.patch('/status-update/:id', async (req, res) => {
+      const id = req.params.id 
+      const {status} = req.body
+      const filter = { _id: new ObjectId(id)}
+      const update = {
+        $set: { serviceStatus: status }
+      }
+      const result = await bookingCollection.updateOne(filter, update)
+      res.send(result)
+    })
+
   } finally {
     // await client.close();
 
