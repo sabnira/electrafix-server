@@ -89,6 +89,18 @@ async function run() {
       res.send(result)
     })
 
+
+    // get all my add services for manage services 
+    app.get('/myAddServices/:email', async (req, res) => {
+      const email = req.params.email
+
+      const query = { "serviceProvider.email": email }
+
+      const result = await servicesCollection.find(query).toArray()
+      res.send(result)
+    })
+    
+
     // get all my services for a specific user
     app.get('/myServices/:email', async (req, res) => {
       const email = req.params.email
