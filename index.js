@@ -99,7 +99,7 @@ async function run() {
       const result = await servicesCollection.find(query).toArray()
       res.send(result)
     })
-    
+
 
     // get all my services for a specific user
     app.get('/myServices/:email', async (req, res) => {
@@ -113,13 +113,21 @@ async function run() {
 
     //status update
     app.patch('/status-update/:id', async (req, res) => {
-      const id = req.params.id 
-      const {status} = req.body
-      const filter = { _id: new ObjectId(id)}
+      const id = req.params.id
+      const { status } = req.body
+      const filter = { _id: new ObjectId(id) }
       const update = {
         $set: { serviceStatus: status }
       }
       const result = await bookingCollection.updateOne(filter, update)
+      res.send(result)
+    })
+
+    //delete a service from db
+    app.delete('/myAddServices/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const result = await servicesCollection.deleteOne(query)
       res.send(result)
     })
 
