@@ -131,6 +131,21 @@ async function run() {
       res.send(result)
     })
 
+    //update a service in db
+    app.put('/update/:id', async (req, res) => {
+      const id = req.params.id
+      const serviceData = req.body
+      const updated = {
+        $set: serviceData,
+      }
+      const query = { _id: new ObjectId(id) }
+      const options = { upsert: true }
+
+      const result = await servicesCollection.updateOne(query, updated, options)
+      console.log(result)
+      res.send(result)
+    })
+
   } finally {
     // await client.close();
 
