@@ -40,6 +40,20 @@ async function run() {
       res.send(result)
     })
 
+    //search service
+    app.get('/service', async (req, res) => {
+      const { searchParams } = req.query;
+
+      let option = {};
+
+      if (searchParams) {
+        option = { serviceName: { $regex: searchParams, $options: "i" } };
+      }
+
+      const result = await servicesCollection.find(option).toArray();
+      res.send(result);
+    })
+
     //get all jobs data from db
     app.get('/services', async (req, res) => {
       const result = await servicesCollection.find().toArray()
