@@ -2,13 +2,21 @@ const express = require('express')
 const cors = require('cors')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
+const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
 
 const port = process.env.PORT || 9000
 const app = express()
 
+const corsOptions = {
+  origin: ['http://localhost:5173'],
+  credentials: true,
+  optionalSuccessStatus: 200,
+}
 
-app.use(cors())
+app.use(cors(corsOptions))
 app.use(express.json())
+app.use(cookieParser())
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.zlvar1f.mongodb.net/?appName=Cluster0`;
@@ -23,6 +31,23 @@ const client = new MongoClient(uri, {
   }
 });
 
+// verifyToken
+const verifyToken = (req, res, next) => {
+
+  const token = req.cookies?.token
+
+  if (!token) return res.status(401).send({ message: 'unauthorized access' })
+  jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: 'unauthorized access' })
+    }
+    req.user = decoded
+  })
+
+  next()
+}
+
+
 async function run() {
   try {
 
@@ -31,6 +56,37 @@ async function run() {
     const db = client.db('electraFix-db')
     const servicesCollection = db.collection('services')
     const bookingCollection = db.collection('booking')
+
+
+
+    //generate jwt
+    app.post('/jwt', async (req, res) => {
+      const email = req.body
+      // create token
+      const token = jwt.sign(email, process.env.SECRET_KEY, { expiresIn: '365d' })
+
+      console.log(token);
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      })
+        .send({ success: true })
+    })
+
+
+     //logout || clear cookie from browser
+    app.get('/logout', async (req, res) => {
+      res.clearCookie('token', {
+        maxAge: 0,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      })
+        .send({ success: true })
+    })
+
+
+
 
     //save a serviceData in db
     app.post('/add-service', async (req, res) => {
@@ -94,7 +150,7 @@ async function run() {
 
 
     // get all bookings for a specific user
-    app.get('/bookings/:email', async (req, res) => {
+    app.get('/bookings/:email',verifyToken, async (req, res) => {
       const email = req.params.email
 
       const query = { userEmail: email }
@@ -105,7 +161,7 @@ async function run() {
 
 
     // get all my add services for manage services 
-    app.get('/myAddServices/:email', async (req, res) => {
+    app.get('/myAddServices/:email',verifyToken, async (req, res) => {
       const email = req.params.email
 
       const query = { "serviceProvider.email": email }
@@ -116,7 +172,7 @@ async function run() {
 
 
     // get all my services for a specific user
-    app.get('/myServices/:email', async (req, res) => {
+    app.get('/myServices/:email',verifyToken, async (req, res) => {
       const email = req.params.email
 
       const query = { providerEmail: email }
