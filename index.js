@@ -1,7 +1,7 @@
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-require('dotenv').config()
 const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
 
@@ -9,7 +9,11 @@ const port = process.env.PORT || 9000
 const app = express()
 
 const corsOptions = {
-  origin: ['http://localhost:5173'],
+  origin: [
+    'http://localhost:5173',
+    'https://electrafix-98f49.web.app',
+    'https://electrafix-98f49.firebaseapp.com'
+  ],
   credentials: true,
   optionalSuccessStatus: 200,
 }
@@ -75,7 +79,7 @@ async function run() {
     })
 
 
-     //logout || clear cookie from browser
+    //logout || clear cookie from browser
     app.get('/logout', async (req, res) => {
       res.clearCookie('token', {
         maxAge: 0,
@@ -150,7 +154,7 @@ async function run() {
 
 
     // get all bookings for a specific user
-    app.get('/bookings/:email',verifyToken, async (req, res) => {
+    app.get('/bookings/:email', verifyToken, async (req, res) => {
       const email = req.params.email
 
       const query = { userEmail: email }
@@ -161,7 +165,7 @@ async function run() {
 
 
     // get all my add services for manage services 
-    app.get('/myAddServices/:email',verifyToken, async (req, res) => {
+    app.get('/myAddServices/:email', verifyToken, async (req, res) => {
       const email = req.params.email
 
       const query = { "serviceProvider.email": email }
@@ -172,7 +176,7 @@ async function run() {
 
 
     // get all my services for a specific user
-    app.get('/myServices/:email',verifyToken, async (req, res) => {
+    app.get('/myServices/:email', verifyToken, async (req, res) => {
       const email = req.params.email
 
       const query = { providerEmail: email }
